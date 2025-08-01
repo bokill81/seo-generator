@@ -202,14 +202,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Gestion des erreurs 404
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Route non trouvée',
-    path: req.path
-  });
-});
-
 // Gestion globale des erreurs
 app.use((err, req, res, next) => {
   console.error('Erreur globale:', err);
@@ -217,14 +209,6 @@ app.use((err, req, res, next) => {
     error: 'Erreur serveur interne',
     message: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
-});
-
-// Servir les fichiers statiques du frontend
-app.use(express.static('public'));
-
-// Route catch-all pour React
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Démarrage du serveur
@@ -243,4 +227,20 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   console.log('SIGINT reçu, arrêt en cours...');
   process.exit(0);
+});
+
+// Servir les fichiers statiques du frontend
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route catch-all pour React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Gestion des erreurs 404
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Route non trouvée',
+    path: req.path
+  });
 });
