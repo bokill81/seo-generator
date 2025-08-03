@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, CheckCircle, AlertCircle, Download, Mail, Sparkles, Globe, Search, Target, FileJson, FileText, Play, Cog, Clock, TrendingUp } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, Download, Mail, Sparkles, Globe, Cog, Play, FileJson, FileText, Info } from 'lucide-react';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = '/api';
 
 const SEOGenerator = () => {
   const [formData, setFormData] = useState({
     companyName: '',
     websiteUrl: '',
+    companyKeywords: '',
     services: '',
-    geographicZone: '',
+    specificities: '',
+    companyZones: '',
     keywords: '',
+    geographicZone: '',
     tone: 'professionnel',
     objectives: 'both',
     email: '',
@@ -23,7 +26,68 @@ const SEOGenerator = () => {
   const [isPolling, setIsPolling] = useState(false);
   const [startTime, setStartTime] = useState(null);
 
-  // Polling du statut
+  useEffect(() => {
+    if (!document.getElementById('seo-styles')) {
+      const style = document.createElement('style');
+      style.id = 'seo-styles';
+      style.textContent = `
+        @keyframes gradientBG {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes floating {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+        
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+          70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
+          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+        }
+        
+        .glass {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        
+        .glass-dark {
+          background: rgba(0, 0, 0, 0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .select-dropdown {
+          background: rgba(30, 30, 40, 0.9);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .select-dropdown option {
+          background: #1a1a2e;
+          color: white;
+          padding: 8px;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   useEffect(() => {
     if (!session?.sessionId || !isPolling) return;
 
@@ -53,10 +117,28 @@ const SEOGenerator = () => {
     setStartTime(Date.now());
 
     try {
+      const dataToSend = {
+        companyName: formData.companyName,
+        websiteUrl: formData.websiteUrl,
+        services: formData.services || formData.specificities,
+        geographicZone: formData.companyZones || formData.geographicZone,
+        keywords: formData.keywords,
+        tone: formData.tone,
+        objectives: formData.objectives,
+        email: formData.email,
+        emailNotification: formData.emailNotification,
+        companyContext: {
+          companyKeywords: formData.companyKeywords,
+          services: formData.services,
+          specificities: formData.specificities,
+          zones: formData.companyZones
+        }
+      };
+
       const response = await fetch(`${API_URL}/generate-seo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(dataToSend)
       });
 
       if (!response.ok) {
@@ -103,290 +185,296 @@ const SEOGenerator = () => {
     return `${minutes}m ${seconds}s`;
   };
 
+  const resetForm = () => {
+    setSession(null);
+    setStatus(null);
+    setError(null);
+    setFormData({
+      companyName: '',
+      websiteUrl: '',
+      companyKeywords: '',
+      services: '',
+      specificities: '',
+      companyZones: '',
+      keywords: '',
+      geographicZone: '',
+      tone: 'professionnel',
+      objectives: 'both',
+      email: '',
+      emailNotification: false
+    });
+  };
+
+  const inputStyle = {
+    width: '100%',
+    padding: '16px 24px',
+    borderRadius: '16px',
+    color: 'white',
+    fontSize: '16px',
+    outline: 'none',
+    transition: 'all 0.3s ease'
+  };
+
+  const textareaStyle = {
+    ...inputStyle,
+    minHeight: '80px',
+    resize: 'vertical'
+  };
+
   return (
-    <div className="min-h-screen p-4" style={{
+    <div style={{
+      minHeight: '100vh',
+      padding: '16px',
       background: 'linear-gradient(-45deg, #667eea, #4b4fa2, #6c5ce7, #fd79a8)',
       backgroundSize: '400% 400%',
-      animation: 'gradientBG 15s ease infinite'
+      animation: 'gradientBG 15s ease infinite',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      <style jsx>{`
-        @keyframes gradientBG {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes floating {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-          100% { transform: translateY(0px); }
-        }
-        
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes progressShine {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        
-        @keyframes pulse {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
-          70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
-        }
-        
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        .glass {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-        }
-        
-        .glass-dark {
-          background: rgba(0, 0, 0, 0.1);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .floating {
-          animation: floating 3s ease-in-out infinite;
-        }
-        
-        .slide-in {
-          animation: slideIn 0.5s ease-out;
-        }
-        
-        .btn-gradient {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          transition: all 0.3s ease;
-        }
-        
-        .btn-gradient:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-        
-        .progress-bar {
-          background: linear-gradient(90deg, #667eea, #764ba2, #6c5ce7);
-          transition: width 0.3s ease;
-          position: relative;
-          overflow: hidden;
-        }
-        
-        .progress-bar::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-          animation: progressShine 2s ease-in-out infinite;
-        }
-        
-        .loading-spinner {
-          border: 3px solid rgba(255, 255, 255, 0.3);
-          border-radius: 50%;
-          border-top: 3px solid #667eea;
-          width: 24px;
-          height: 24px;
-          animation: spin 1s linear infinite;
-          display: inline-block;
-        }
-        
-        .pulse-dot {
-          animation: pulse 2s infinite;
-        }
-        
-        .download-btn {
-          background: linear-gradient(135deg, #00e676 0%, #00c853 100%);
-          transition: all 0.3s ease;
-        }
-        
-        .download-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 25px rgba(0, 230, 118, 0.4);
-        }
-      `}</style>
-
-      {/* Background particles */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-2 h-2 bg-white opacity-20 rounded-full floating" style={{ top: '10%', left: '10%' }}></div>
-        <div className="absolute w-3 h-3 bg-purple-200 opacity-15 rounded-full floating" style={{ top: '20%', left: '80%', animationDelay: '1s' }}></div>
-        <div className="absolute w-1 h-1 bg-pink-200 opacity-30 rounded-full floating" style={{ top: '80%', left: '20%', animationDelay: '2s' }}></div>
-        <div className="absolute w-2 h-2 bg-blue-200 opacity-25 rounded-full floating" style={{ top: '60%', left: '70%', animationDelay: '1.5s' }}></div>
+      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <div style={{
+          position: 'absolute',
+          width: '8px',
+          height: '8px',
+          background: 'white',
+          opacity: 0.2,
+          borderRadius: '50%',
+          top: '10%',
+          left: '10%',
+          animation: 'floating 3s ease-in-out infinite'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          width: '12px',
+          height: '12px',
+          background: 'rgba(216, 180, 254, 0.3)',
+          borderRadius: '50%',
+          top: '20%',
+          left: '80%',
+          animation: 'floating 3s ease-in-out infinite',
+          animationDelay: '1s'
+        }}></div>
       </div>
 
-      <div className="w-full max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 slide-in">
-          <div className="inline-flex items-center justify-center w-20 h-20 glass rounded-2xl mb-6 floating">
-            <Sparkles size={40} className="text-white" />
+      <div style={{ width: '100%', maxWidth: '1024px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px', paddingTop: '32px', animation: 'slideIn 0.5s ease-out' }}>
+          <div className="glass" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '80px',
+            height: '80px',
+            borderRadius: '16px',
+            marginBottom: '24px',
+            animation: 'floating 3s ease-in-out infinite'
+          }}>
+            <Sparkles size={40} color="white" />
           </div>
-          <h1 className="text-5xl font-bold text-white mb-4">SEO Content Generator</h1>
-          <p className="text-xl text-gray-200 opacity-90">Générez 15 articles SEO optimisés. Simple, rapide, efficace</p>
+          <h1 style={{ fontSize: '48px', fontWeight: 'bold', color: 'white', marginBottom: '16px' }}>
+            SEO Content Generator
+          </h1>
+          <p style={{ fontSize: '20px', color: 'rgba(255, 255, 255, 0.9)' }}>
+            Générez 15 articles SEO optimisés. Simple, rapide, efficace
+          </p>
         </div>
 
-        {/* Main Card */}
-        <div className="glass rounded-3xl p-8 slide-in" style={{ animationDelay: '0.2s' }}>
+        <div className="glass" style={{
+          borderRadius: '24px',
+          padding: '32px',
+          animation: 'slideIn 0.5s ease-out 0.2s both'
+        }}>
           {!session ? (
-            // Formulaire
             <form onSubmit={handleSubmit}>
-              {/* Company Info Section */}
-              <div className="mb-8">
-                <label className="block text-white text-lg font-semibold mb-4">
-                  <Globe className="inline mr-2" size={20} />
+              <div style={{ marginBottom: '32px' }}>
+                <label style={{ display: 'block', color: 'white', fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+                  <Globe size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
                   Informations de l'entreprise
                 </label>
+                <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Info size={16} />
+                  Ces informations permettent à l'IA de mieux connaître votre entreprise pour personnaliser le contenu
+                </p>
                 
-                <div className="grid md:grid-cols-2 gap-4 mb-4">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      value={formData.companyName}
-                      onChange={(e) => setFormData({...formData, companyName: e.target.value})}
-                      className="w-full px-6 py-4 glass-dark rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      placeholder="Nom de l'entreprise"
-                    />
-                  </div>
-                  
-                  <div className="relative">
-                    <input
-                      type="url"
-                      required
-                      value={formData.websiteUrl}
-                      onChange={(e) => setFormData({...formData, websiteUrl: e.target.value})}
-                      className="w-full px-6 py-4 glass-dark rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      placeholder="https://exemple.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      value={formData.services}
-                      onChange={(e) => setFormData({...formData, services: e.target.value})}
-                      className="w-full px-6 py-4 glass-dark rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      placeholder="Services (ex: Plomberie, Chauffage)"
-                    />
-                  </div>
-                  
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      value={formData.geographicZone}
-                      onChange={(e) => setFormData({...formData, geographicZone: e.target.value})}
-                      className="w-full px-6 py-4 glass-dark rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      placeholder="Zone géographique (ex: Paris)"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SEO Settings Section */}
-              <div className="mb-8">
-                <label className="block text-white text-lg font-semibold mb-4">
-                  <Cog className="inline mr-2" size={20} />
-                  Paramètres SEO
-                </label>
-
-                <div className="mb-4">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '16px' }}>
                   <input
                     type="text"
-                    value={formData.keywords}
-                    onChange={(e) => setFormData({...formData, keywords: e.target.value})}
-                    className="w-full px-6 py-4 glass-dark rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
-                    placeholder="Mots-clés (optionnel, séparés par des virgules)"
+                    required
+                    value={formData.companyName}
+                    onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                    className="glass-dark"
+                    style={inputStyle}
+                    placeholder="Nom de l'entreprise"
+                  />
+                  
+                  <input
+                    type="url"
+                    required
+                    value={formData.websiteUrl}
+                    onChange={(e) => setFormData({...formData, websiteUrl: e.target.value})}
+                    className="glass-dark"
+                    style={inputStyle}
+                    placeholder="https://exemple.com"
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <select
-                      value={formData.tone}
-                      onChange={(e) => setFormData({...formData, tone: e.target.value})}
-                      className="w-full px-6 py-4 glass-dark rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    >
-                      <option value="professionnel" className="bg-gray-800">Ton professionnel</option>
-                      <option value="amical" className="bg-gray-800">Ton amical</option>
-                      <option value="expert" className="bg-gray-800">Ton expert</option>
-                    </select>
-                  </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <textarea
+                    value={formData.companyKeywords}
+                    onChange={(e) => setFormData({...formData, companyKeywords: e.target.value})}
+                    className="glass-dark"
+                    style={textareaStyle}
+                    placeholder="Mots-clés décrivant votre entreprise (collez votre liste ici)"
+                  />
+                </div>
 
-                  <div>
-                    <select
-                      value={formData.objectives}
-                      onChange={(e) => setFormData({...formData, objectives: e.target.value})}
-                      className="w-full px-6 py-4 glass-dark rounded-2xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    >
-                      <option value="traffic" className="bg-gray-800">Objectif : Trafic</option>
-                      <option value="conversion" className="bg-gray-800">Objectif : Conversion</option>
-                      <option value="both" className="bg-gray-800">Objectif : Les deux</option>
-                    </select>
-                  </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+                  <textarea
+                    value={formData.services}
+                    onChange={(e) => setFormData({...formData, services: e.target.value})}
+                    className="glass-dark"
+                    style={textareaStyle}
+                    placeholder="Services proposés (optionnel)"
+                  />
+                  
+                  <textarea
+                    value={formData.specificities}
+                    onChange={(e) => setFormData({...formData, specificities: e.target.value})}
+                    className="glass-dark"
+                    style={textareaStyle}
+                    placeholder="Spécificités de vos services (optionnel)"
+                  />
+                </div>
+
+                <textarea
+                  value={formData.companyZones}
+                  onChange={(e) => setFormData({...formData, companyZones: e.target.value})}
+                  className="glass-dark"
+                  style={textareaStyle}
+                  placeholder="Zones géographiques d'intervention (collez votre liste de villes/régions)"
+                />
+              </div>
+
+              <div style={{ marginBottom: '32px' }}>
+                <label style={{ display: 'block', color: 'white', fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
+                  <Cog size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
+                  Paramètres SEO des articles
+                </label>
+                <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Info size={16} />
+                  Définissez les mots-clés et zones géographiques à cibler dans vos articles SEO
+                </p>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <textarea
+                    value={formData.keywords}
+                    onChange={(e) => setFormData({...formData, keywords: e.target.value})}
+                    className="glass-dark"
+                    style={textareaStyle}
+                    placeholder="Mots-clés SEO à cibler dans les articles"
+                  />
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <textarea
+                    value={formData.geographicZone}
+                    onChange={(e) => setFormData({...formData, geographicZone: e.target.value})}
+                    className="glass-dark"
+                    style={textareaStyle}
+                    placeholder="Zones géographiques à cibler dans les articles"
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                  <select
+                    value={formData.tone}
+                    onChange={(e) => setFormData({...formData, tone: e.target.value})}
+                    className="select-dropdown"
+                    style={inputStyle}
+                  >
+                    <option value="professionnel">Ton professionnel</option>
+                    <option value="amical">Ton amical</option>
+                    <option value="expert">Ton expert</option>
+                  </select>
+
+                  <select
+                    value={formData.objectives}
+                    onChange={(e) => setFormData({...formData, objectives: e.target.value})}
+                    className="select-dropdown"
+                    style={inputStyle}
+                  >
+                    <option value="traffic">Objectif : Trafic</option>
+                    <option value="conversion">Objectif : Conversion</option>
+                    <option value="both">Objectif : Les deux</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Email Notification Section */}
-              <div className="mb-8">
-                <label className="block text-white text-lg font-semibold mb-4">
-                  <Mail className="inline mr-2" size={20} />
+              <div style={{ marginBottom: '32px' }}>
+                <label style={{ display: 'block', color: 'white', fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>
+                  <Mail size={20} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'middle' }} />
                   Notification par email (optionnel)
                 </label>
                 
-                <div className="flex gap-4">
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="flex-1 px-6 py-4 glass-dark rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="glass-dark"
+                    style={{ ...inputStyle, flex: 1 }}
                     placeholder="contact@exemple.com"
                   />
-                  <label className="flex items-center gap-2 text-white cursor-pointer">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={formData.emailNotification}
                       onChange={(e) => setFormData({...formData, emailNotification: e.target.checked})}
-                      className="w-5 h-5 rounded border-white/20 bg-white/10 text-purple-500 focus:ring-purple-500"
+                      style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                     />
                     <span>Recevoir par email</span>
                   </label>
                 </div>
               </div>
 
-              {/* Error Message */}
               {error && (
-                <div className="mb-6 p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, #ff5252, #f44336)' }}>
-                  <div className="flex items-center text-white">
-                    <AlertCircle className="mr-2" size={20} />
-                    <span>{error}</span>
-                  </div>
+                <div style={{
+                  marginBottom: '24px',
+                  padding: '16px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, #ff5252, #f44336)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: 'white',
+                  gap: '8px'
+                }}>
+                  <AlertCircle size={20} />
+                  <span>{error}</span>
                 </div>
               )}
 
-              {/* Submit Button */}
-              <div className="text-center">
+              <div style={{ textAlign: 'center' }}>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="btn-gradient text-white font-bold py-4 px-12 rounded-2xl text-lg inline-flex items-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    padding: '16px 48px',
+                    borderRadius: '16px',
+                    fontSize: '18px',
+                    border: 'none',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+                    opacity: isLoading ? 0.5 : 1
+                  }}
                 >
                   {isLoading ? (
                     <>
-                      <div className="loading-spinner"></div>
+                      <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
                       <span>Génération en cours...</span>
                     </>
                   ) : (
@@ -399,86 +487,104 @@ const SEOGenerator = () => {
               </div>
             </form>
           ) : (
-            // Progress & Results
             <>
               {status?.status !== 'completed' ? (
-                // Progress Section
-                <div className="glass-dark rounded-2xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-white font-semibold">
-                      <Loader2 className="inline mr-2 animate-spin" size={20} style={{ color: '#667eea' }} />
+                <div className="glass-dark" style={{ padding: '24px', borderRadius: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <span style={{ color: 'white', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Loader2 size={20} style={{ animation: 'spin 1s linear infinite', color: '#667eea' }} />
                       <span>{status?.currentStep || 'Génération en cours...'}</span>
                     </span>
-                    <span className="text-gray-300">{status?.progress || 0}%</span>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>{status?.progress || 0}%</span>
                   </div>
                   
-                  <div className="w-full bg-gray-700 rounded-full h-3">
-                    <div 
-                      className="progress-bar h-3 rounded-full"
-                      style={{ width: `${status?.progress || 0}%` }}
-                    ></div>
+                  <div style={{ width: '100%', height: '12px', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #667eea, #764ba2, #6c5ce7)',
+                      transition: 'width 0.3s ease',
+                      width: `${status?.progress || 0}%`
+                    }}></div>
                   </div>
                   
-                  <div className="mt-4 grid grid-cols-3 gap-4 text-sm text-gray-300">
+                  <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', fontSize: '14px', color: 'rgba(255, 255, 255, 0.7)' }}>
                     <div>⏱️ Temps écoulé: {getElapsedTime()}</div>
                     <div style={{ color: '#fff' }}>🔍 Session: {session.sessionId.substring(0, 8)}...</div>
                     <div style={{ color: '#fff' }}>📊 {status?.status || 'En cours'}</div>
                   </div>
                 </div>
               ) : (
-                // Results Section
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-white text-xl font-semibold">
-                      <CheckCircle className="inline mr-2" size={24} style={{ color: '#00e676' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                    <h3 style={{ color: 'white', fontSize: '20px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <CheckCircle size={24} style={{ color: '#00e676' }} />
                       Génération terminée !
                     </h3>
-                    <div className="pulse-dot w-3 h-3 rounded-full" style={{ backgroundColor: '#00e676' }}></div>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#00e676', animation: 'pulse 2s infinite' }}></div>
                   </div>
 
                   {status.results && (
                     <>
-                      {/* Stats Grid */}
-                      <div className="grid md:grid-cols-4 gap-4 mb-6">
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-white">{status.results.summary.articlesGenerated}</div>
-                          <div className="text-gray-300 text-sm">Articles générés</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                        <div style={{ textAlign: 'center', padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '12px' }}>
+                          <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
+                            {status.results.summary.articlesGenerated}
+                          </div>
+                          <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>Articles générés</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-white">{status.results.summary.totalWords.toLocaleString()}</div>
-                          <div className="text-gray-300 text-sm">Mots écrits</div>
+                        <div style={{ textAlign: 'center', padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '12px' }}>
+                          <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
+                            {status.results.summary.totalWords.toLocaleString()}
+                          </div>
+                          <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>Mots écrits</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-white">{status.results.summary.averageQuality}%</div>
-                          <div className="text-gray-300 text-sm">Score qualité</div>
+                        <div style={{ textAlign: 'center', padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '12px' }}>
+                          <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
+                            {status.results.summary.averageQuality}%
+                          </div>
+                          <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>Score qualité</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-white">{status.duration || getElapsedTime()}</div>
-                          <div className="text-gray-300 text-sm">Durée totale</div>
+                        <div style={{ textAlign: 'center', padding: '16px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '12px' }}>
+                          <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>
+                            {status.duration || getElapsedTime()}
+                          </div>
+                          <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>Durée totale</div>
                         </div>
                       </div>
 
-                      {/* Preview */}
                       {status.results.preview?.topArticles && (
-                        <div className="mb-6 space-y-3">
-                          <h4 className="text-white font-semibold mb-3">Aperçu des articles :</h4>
+                        <div style={{ marginBottom: '24px' }}>
+                          <h4 style={{ color: 'white', fontWeight: '600', marginBottom: '12px' }}>Aperçu des articles générés :</h4>
                           {status.results.preview.topArticles.map((article, idx) => (
-                            <div key={idx} className="glass-dark rounded-xl p-4">
-                              <div className="flex justify-between items-start mb-2">
-                                <h5 className="text-white font-medium flex-1">{article.title}</h5>
-                                <span className="text-green-400 text-sm ml-2">{article.quality}%</span>
+                            <div key={idx} className="glass-dark" style={{ padding: '16px', borderRadius: '12px', marginBottom: '12px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                                <h5 style={{ color: 'white', fontWeight: '500', flex: 1 }}>{article.title}</h5>
+                                <span style={{ color: '#4caf50', fontSize: '14px', marginLeft: '8px' }}>{article.quality}%</span>
                               </div>
-                              <p className="text-gray-300 text-sm">{article.excerpt}</p>
+                              <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>{article.excerpt}</p>
                             </div>
                           ))}
                         </div>
                       )}
 
-                      {/* Download Buttons */}
-                      <div className="grid md:grid-cols-2 gap-4 mb-6">
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                         <button
                           onClick={() => handleDownload('articles.json')}
-                          className="download-btn text-white font-bold py-4 px-6 rounded-2xl text-lg inline-flex items-center justify-center space-x-3"
+                          style={{
+                            padding: '16px 24px',
+                            borderRadius: '16px',
+                            fontSize: '18px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '12px',
+                            transition: 'all 0.3s ease',
+                            color: 'white',
+                            fontWeight: '600',
+                            background: 'linear-gradient(135deg, #00e676 0%, #00c853 100%)'
+                          }}
                         >
                           <FileJson size={20} />
                           <span>Télécharger Articles (JSON)</span>
@@ -487,8 +593,21 @@ const SEOGenerator = () => {
 
                         <button
                           onClick={() => handleDownload('strategy.md')}
-                          className="text-white font-bold py-4 px-6 rounded-2xl text-lg inline-flex items-center justify-center space-x-3"
-                          style={{ background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' }}
+                          style={{
+                            padding: '16px 24px',
+                            borderRadius: '16px',
+                            fontSize: '18px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '12px',
+                            transition: 'all 0.3s ease',
+                            color: 'white',
+                            fontWeight: '600',
+                            background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)'
+                          }}
                         >
                           <FileText size={20} />
                           <span>Télécharger Stratégie (MD)</span>
@@ -497,34 +616,36 @@ const SEOGenerator = () => {
                       </div>
 
                       {status.results.emailSent && (
-                        <div className="p-4 rounded-2xl mb-6" style={{ background: 'linear-gradient(135deg, #4caf50, #388e3c)' }}>
-                          <div className="flex items-center text-white">
-                            <Mail className="mr-2" size={20} />
-                            <span>Les fichiers ont été envoyés par email</span>
-                          </div>
+                        <div style={{
+                          padding: '16px',
+                          borderRadius: '16px',
+                          background: 'linear-gradient(135deg, #4caf50, #388e3c)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: 'white',
+                          gap: '8px',
+                          marginBottom: '24px'
+                        }}>
+                          <Mail size={20} />
+                          <span>Les fichiers ont été envoyés par email</span>
                         </div>
                       )}
 
-                      {/* New Generation Button */}
-                      <div className="text-center">
+                      <div style={{ textAlign: 'center' }}>
                         <button
-                          onClick={() => {
-                            setSession(null);
-                            setStatus(null);
-                            setError(null);
-                            setFormData({
-                              companyName: '',
-                              websiteUrl: '',
-                              services: '',
-                              geographicZone: '',
-                              keywords: '',
-                              tone: 'professionnel',
-                              objectives: 'both',
-                              email: '',
-                              emailNotification: false
-                            });
+                          onClick={resetForm}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            fontSize: '16px',
+                            padding: '8px 16px',
+                            transition: 'color 0.2s ease'
                           }}
-                          className="text-purple-300 hover:text-white transition-colors duration-200 underline"
+                          onMouseOver={(e) => e.target.style.color = 'white'}
+                          onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.7)'}
                         >
                           Nouvelle génération
                         </button>
@@ -537,8 +658,7 @@ const SEOGenerator = () => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="text-center mt-8 text-gray-300 opacity-70">
+        <div style={{ textAlign: 'center', marginTop: '32px', color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>
           <p>© 2025 - SEO Content Generator</p>
         </div>
       </div>
