@@ -280,7 +280,7 @@ const SEOGenerator = () => {
         overflow: 'hidden', 
         pointerEvents: 'none',
         zIndex: 0
-      }}>>
+      }}>
         <div style={{
           position: 'absolute',
           width: '8px',
