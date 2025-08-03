@@ -31,6 +31,38 @@ const SEOGenerator = () => {
       const style = document.createElement('style');
       style.id = 'seo-styles';
       style.textContent = `
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        html, body {
+          margin: 0;
+          padding: 0;
+          overflow-x: hidden;
+        }
+        
+        body {
+          background: linear-gradient(-45deg, #667eea, #4b4fa2, #6c5ce7, #fd79a8);
+          background-size: 400% 400%;
+          animation: gradientBG 15s ease infinite;
+        }
+        
+        input::placeholder,
+        textarea::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+          opacity: 1;
+        }
+        
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 30px rgba(0, 0, 0, 0.1) inset !important;
+          -webkit-text-fill-color: white !important;
+        }
+        
         @keyframes gradientBG {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
@@ -62,6 +94,7 @@ const SEOGenerator = () => {
         .glass {
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
           border: 1px solid rgba(255, 255, 255, 0.2);
           box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
         }
@@ -69,12 +102,14 @@ const SEOGenerator = () => {
         .glass-dark {
           background: rgba(0, 0, 0, 0.1);
           backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
           border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .select-dropdown {
           background: rgba(30, 30, 40, 0.9);
           backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
           border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
@@ -212,25 +247,40 @@ const SEOGenerator = () => {
     color: 'white',
     fontSize: '16px',
     outline: 'none',
-    transition: 'all 0.3s ease'
+    transition: 'all 0.3s ease',
+    backgroundColor: 'transparent'
   };
 
   const textareaStyle = {
     ...inputStyle,
     minHeight: '80px',
-    resize: 'vertical'
+    resize: 'vertical',
+    fontFamily: 'inherit'
   };
 
   return (
     <div style={{
       minHeight: '100vh',
-      padding: '16px',
+      margin: 0,
+      padding: 0,
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      overflow: 'auto',
       background: 'linear-gradient(-45deg, #667eea, #4b4fa2, #6c5ce7, #fd79a8)',
       backgroundSize: '400% 400%',
       animation: 'gradientBG 15s ease infinite',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
     }}>
-      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      <div style={{ 
+        position: 'fixed', 
+        inset: 0, 
+        overflow: 'hidden', 
+        pointerEvents: 'none',
+        zIndex: 0
+      }}>>
         <div style={{
           position: 'absolute',
           width: '8px',
@@ -255,7 +305,14 @@ const SEOGenerator = () => {
         }}></div>
       </div>
 
-      <div style={{ width: '100%', maxWidth: '1024px', margin: '0 auto' }}>
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '1024px', 
+        margin: '0 auto',
+        padding: '16px',
+        position: 'relative',
+        zIndex: 1
+      }}>
         <div style={{ textAlign: 'center', marginBottom: '32px', paddingTop: '32px', animation: 'slideIn 0.5s ease-out' }}>
           <div className="glass" style={{
             display: 'inline-flex',
