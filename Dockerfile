@@ -5,7 +5,6 @@ COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
 ENV REACT_APP_API_URL=/api
-RUN chmod +x node_modules/.bin/react-scripts
 RUN npm run build
 
 # Backend + servir le frontend
