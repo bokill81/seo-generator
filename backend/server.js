@@ -21,11 +21,13 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Routes
+// Routes API
 
 // Lance la génération SEO
 app.post('/api/generate-seo', async (req, res) => {
   try {
+    console.log('Received request:', req.body);
+    
     const {
       companyName,
       websiteUrl,
@@ -35,54 +37,76 @@ app.post('/api/generate-seo', async (req, res) => {
       tone,
       objectives,
       email,
-      emailNotification
+      emailNotification,
+      companyContext
     } = req.body;
 
-    // Validation des données requises
-    if (!companyName || !websiteUrl || !services || !geographicZone) {
+    // Validation des données requises (ajustée pour les nouveaux champs)
+    if (!companyName || !websiteUrl) {
       return res.status(400).json({
         error: 'Données manquantes',
-        required: ['companyName', 'websiteUrl', 'services', 'geographicZone']
+        required: ['companyName', 'websiteUrl']
       });
     }
 
-    // Appel au webhook n8n
+    // Construire les données pour n8n avec gestion des nouveaux champs
+    const n8nData = {
+      companyName,
+      websiteUrl,
+      services: services || companyContext?.services || '',
+      geographicZone: geographicZone || companyContext?.zones || '',
+      keywords: keywords || '',
+      tone: tone || 'professionnel',
+      objectives: objectives || 'both',
+      email: email || '',
+      emailNotification: emailNotification || false
+    };
+
+    // Si on a des données de contexte, les inclure
+    if (companyContext) {
+      n8nData.companyKeywords = companyContext.companyKeywords || '';
+      n8nData.specificities = companyContext.specificities || '';
+    }
+
+    console.log('Sending to n8n:', n8nData);
+    console.log('n8n URL:', `${N8N_BASE_URL}${N8N_WEBHOOK_PATH}/seo-generation`);
+
+    // Appel au webhook n8n avec timeout augmenté
     const response = await axios.post(
       `${N8N_BASE_URL}${N8N_WEBHOOK_PATH}/seo-generation`,
-      {
-        companyName,
-        websiteUrl,
-        services,
-        geographicZone,
-        keywords: keywords || '',
-        tone: tone || 'professionnel',
-        objectives: objectives || 'both',
-        email: email || '',
-        emailNotification: emailNotification || false
-      },
+      n8nData,
       {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 10000
+        timeout: 300000 // 5 minutes
       }
     );
 
+    console.log('n8n response:', response.data);
     res.json(response.data);
   } catch (error) {
     console.error('Erreur lors de la génération:', error.message);
     
     if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
       res.status(error.response.status).json({
-        error: error.response.data.message || 'Erreur du webhook n8n'
+        error: error.response.data?.message || error.message || 'Erreur du webhook n8n',
+        details: error.response.data
       });
     } else if (error.code === 'ECONNABORTED') {
       res.status(504).json({
         error: 'Timeout - La requête a pris trop de temps'
       });
+    } else if (error.code === 'ECONNREFUSED') {
+      res.status(503).json({
+        error: 'Impossible de se connecter à n8n. Vérifiez que n8n est bien démarré.'
+      });
     } else {
       res.status(500).json({
-        error: 'Erreur serveur lors de la génération'
+        error: 'Erreur serveur lors de la génération',
+        message: error.message
       });
     }
   }
@@ -100,7 +124,7 @@ app.get('/api/status/:sessionId', async (req, res) => {
     const response = await axios.get(
       `${N8N_BASE_URL}${N8N_WEBHOOK_PATH}/status/${sessionId}`,
       {
-        timeout: 5000
+        timeout: 10000 // 10 secondes pour le status
       }
     );
 
@@ -162,7 +186,7 @@ app.get('/api/download/:sessionId/:fileType', async (req, res) => {
       `${N8N_BASE_URL}${N8N_WEBHOOK_PATH}/download/${sessionId}/${fileType}`,
       {
         responseType: 'stream',
-        timeout: 30000
+        timeout: 60000 // 1 minute pour le téléchargement
       }
     );
 
@@ -202,6 +226,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// IMPORTANT: Servir les fichiers statiques du frontend APRÈS les routes API
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route catch-all pour React (doit être après les routes API et le static)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Gestion globale des erreurs
 app.use((err, req, res, next) => {
   console.error('Erreur globale:', err);
@@ -227,20 +259,4 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
   console.log('SIGINT reçu, arrêt en cours...');
   process.exit(0);
-});
-
-// Servir les fichiers statiques du frontend
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Route catch-all pour React
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Gestion des erreurs 404
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Route non trouvée',
-    path: req.path
-  });
 });
