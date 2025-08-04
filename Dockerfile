@@ -1,11 +1,13 @@
 # Build du frontend
-FROM node:18-alpine as frontend-build
+FROM node:18-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install
+# Installation avec plus de droits
+RUN npm ci --only=production || npm install
 COPY frontend/ ./
 ENV REACT_APP_API_URL=/api
-RUN npm run build
+# Alternative: utiliser npx pour éviter les problèmes de permissions
+RUN npx react-scripts build
 
 # Backend + servir le frontend
 FROM node:18-alpine
